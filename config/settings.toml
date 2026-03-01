@@ -1,0 +1,43 @@
+# Jarvis Desktop Assistant Configuration
+
+[app]
+name = "Jarvis"
+version = "0.1.0"
+debug = true
+host = "0.0.0.0"
+port = 8000
+
+[voice]
+stt_model = "base"  # tiny, base, small, medium, large
+tts_engine = "pyttsx3"  # pyttsx3, edge-tts
+sample_rate = 16000
+hotkey = "ctrl+alt+j"
+
+[memory]
+db_type = "sqlite"  # sqlite, postgres
+vector_db = "chroma"  # chroma, qdrant
+chroma_persist_directory = "./data/chroma"
+postgres_host = "localhost"
+postgres_port = 5432
+postgres_db = "jarvis"
+postgres_user = "jarvis"
+postgres_password = ""
+
+[llm]
+provider = "openai"  # openai, anthropic, ollama
+model = "gpt-4"
+api_key = ""
+base_url = "http://localhost:11434"  # for ollama
+temperature = 0.7
+max_tokens = 4000
+tools_enabled = true
+
+[os_operator]
+screenshot_dir = "./data/screenshots"
+default_delay = 0.1
+safety_confirm_destructive = true
+
+[safety]
+require_confirmation_for_destructive = true
+allowed_apps = ["chrome", "firefox", "vscode", "notepad", "explorer"]
+blocked_actions = ["delete_files", "format_drive", "send_email"]

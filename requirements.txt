@@ -1,0 +1,41 @@
+# Jarvis Desktop Assistant Dependencies
+
+# Core
+fastapi>=0.109.0
+uvicorn>=0.27.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+
+# Configuration
+toml>=0.10.2
+
+# Voice - STT/TTS
+openai-whisper>=20231117
+pyttsx3>=2.90
+pyaudio>=0.2.14
+
+# Memory - Database
+sqlalchemy>=2.0.25
+psycopg2-binary>=2.9.9
+chromadb>=0.4.22
+pypdf>=3.17.4
+
+# LLM
+openai>=1.10.0
+anthropic>=0.18.0
+httpx>=0.26.0
+
+# OS Operator
+pyautogui>=0.9.54
+pygetwindow>=0.0.9
+pymsgbox>=1.0.9
+Pillow>=10.2.0
+
+# Utilities
+python-dotenv>=1.0.0
+aiofiles>=23.2.1
+numpy>=1.26.0
+
+# Development
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
