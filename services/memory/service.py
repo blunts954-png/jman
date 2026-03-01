@@ -4,7 +4,7 @@ Memory Service - Jason Memory DB for personal context
 import json
 import uuid
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -40,7 +40,7 @@ class UserProfile(Base):
     key = Column(String, unique=True, nullable=False)
     value_text = Column(Text)
     confidence = Column(Integer, default=1)
-    last_updated = Column(DateTime, default=datetime.utcnow)
+    last_updated = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
 
 class Playbook(Base):
@@ -60,7 +60,7 @@ class Episode(Base):
     
     id = Column(String, primary_key=True)
     source = Column(String)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     summary = Column(Text)
     raw_ref = Column(Text)
 
@@ -193,7 +193,7 @@ class MemoryService:
         meta = metadata or {}
         meta["type"] = memory_type
         meta["importance"] = importance
-        meta["created_at"] = datetime.utcnow().isoformat()
+        meta["created_at"] = datetime.now(timezone.utc).isoformat()
         
         # Add to vector DB
         if self._collection is not None:
@@ -316,14 +316,14 @@ class MemoryService:
                 if existing:
                     existing.value_text = value
                     existing.confidence = confidence
-                    existing.last_updated = datetime.utcnow()
+                    existing.last_updated = datetime.now(timezone.utc)
                 else:
                     profile = UserProfile(
                         id=str(uuid.uuid4()),
                         key=key,
                         value_text=value,
                         confidence=confidence,
-                        last_updated=datetime.utcnow()
+                        last_updated=datetime.now(timezone.utc)
                     )
                     session.add(profile)
                 

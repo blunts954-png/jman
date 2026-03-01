@@ -1,6 +1,7 @@
 """
 Jarvis Desktop Assistant - Main FastAPI Application
 """
+import os
 import uuid
 import logging
 from contextlib import asynccontextmanager
@@ -18,10 +19,16 @@ from models.schemas import (
     ExecuteActionsRequest, ExecuteActionsResponse,
 )
 
-# Configure logging
+# Configure logging from environment variable
+LOG_LEVEL = os.getenv("JARVIS_LOG_LEVEL", "INFO").upper()
+LOG_FORMAT = os.getenv(
+    "JARVIS_LOG_FORMAT",
+    "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    format=LOG_FORMAT
 )
 logger = logging.getLogger("jarvis")
 

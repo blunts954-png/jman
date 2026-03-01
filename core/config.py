@@ -2,10 +2,44 @@
 Configuration loader for Jarvis
 """
 import os
+import re
 import toml
 from pathlib import Path
 from typing import Optional, Dict, Any
 from dataclasses import dataclass, field
+
+
+def _resolve_env_vars(value: Any) -> Any:
+    """
+    Resolve environment variable placeholders in a value.
+    Supports ${VAR} and ${VAR:default} syntax.
+    """
+    if not isinstance(value, str):
+        return value
+    
+    # Match ${VAR} or ${VAR:default}
+    pattern = r'\$\{([^}:]+)(?::([^}]*))?\}'
+    
+    def replacer(match):
+        var_name = match.group(1)
+        default = match.group(2)
+        env_value = os.environ.get(var_name, default if default is not None else "")
+        return env_value
+    
+    return re.sub(pattern, replacer, value)
+
+
+def _resolve_config_values(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Recursively resolve env vars in config dictionary."""
+    result = {}
+    for key, value in data.items():
+        if isinstance(value, dict):
+            result[key] = _resolve_config_values(value)
+        elif isinstance(value, list):
+            result[key] = [_resolve_env_vars(item) for item in value]
+        else:
+            result[key] = _resolve_env_vars(value)
+    return result
 
 
 @dataclass
@@ -95,6 +129,9 @@ def load_config(config_path: Optional[str] = None) -> AppConfig:
     
     with open(config_file, "r") as f:
         data = toml.load(f)
+    
+    # Resolve environment variables in config
+    data = _resolve_config_values(data)
     
     app_data = data.get("app", {})
     voice_data = data.get("voice", {})

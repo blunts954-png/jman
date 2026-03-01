@@ -206,22 +206,54 @@ class OSOperator:
         return {"success": True, "action": "key", "key": key}
     
     async def _open_app(self, action: Dict[str, Any]) -> Dict[str, Any]:
-        """Open application"""
+        """Open application (validated against allowlist)"""
         app_name = action.get("app_name", "")
         arguments = action.get("arguments")
         
         if not app_name:
             return {"success": False, "error": "No app name specified"}
         
+        # Get allowed apps from safety config
         try:
-            cmd = [app_name]
-            if arguments:
-                cmd.append(arguments)
-            
-            subprocess.Popen(cmd, shell=True)
+            from core.config import get_config
+            safety_config = get_config().safety
+            allowed_apps = set(safety_config.allowed_apps)
+        except Exception:
+            # Fallback to default if config unavailable
+            allowed_apps = {"chrome", "firefox", "vscode", "notepad", "explorer", "powershell"}
+        
+        # Validate app is in allowlist
+        if app_name.lower() not in allowed_apps:
+            logger.warning(f"App '{app_name}' not in allowed list: {allowed_apps}")
+            return {"success": False, "error": f"App not allowed: {app_name}"}
+        
+        # Map logical names to concrete commands (Windows-specific)
+        cmd_map = {
+            "chrome": ["C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"],
+            "firefox": ["C:\\Program Files\\Mozilla Firefox\\firefox.exe"],
+            "vscode": ["code"],
+            "notepad": ["notepad.exe"],
+            "explorer": ["explorer.exe"],
+            "powershell": ["powershell.exe"],
+            "cmd": ["cmd.exe"],
+        }
+        
+        cmd = cmd_map.get(app_name.lower())
+        if not cmd:
+            return {"success": False, "error": f"No command mapping for: {app_name}"}
+        
+        if arguments:
+            cmd.append(arguments)
+        
+        try:
+            # NO shell=True - prevents command injection
+            subprocess.Popen(cmd)
             await asyncio.sleep(1)  # Wait for app to start
             
+            logger.info(f"Opened application: {app_name}")
             return {"success": True, "action": "open_app", "app": app_name}
+        except FileNotFoundError:
+            return {"success": False, "error": f"Executable not found for: {app_name}"}
         except Exception as e:
             return {"success": False, "error": str(e)}
     
